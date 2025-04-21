@@ -26,6 +26,7 @@ import ProductManagement from "./pages/admin/products";
 import ProfileManagement from "./pages/admin/profile";
 import LoginPage from "./pages/login";
 import ProductSingle from "./pages/productsingle";
+import UserProfile from "./pages/profile";
 import SupplierDashboard from "./pages/supplier/Dashboard";
 import SupplierCategoryManagement from "./pages/supplier/categories";
 import SupplierOrders from "./pages/supplier/orders"; // ✅ NEW IMPORT
@@ -91,6 +92,7 @@ function Layout() {
           <Route path="/supplier/orders" element={<SupplierOrders />} />
           <Route path="/admin/Crops" element={<Crops />} />
           <Route path="/cropmanagement" element={<CropManagement />} />
+          <Route path="/profile" element={<UserProfile />} />
         </Routes>
       </main>
       {!hideNavbarFooter && <Footer />}
