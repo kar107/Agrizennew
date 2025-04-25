@@ -43,6 +43,11 @@ if (isset($_POST['tag']) && $_POST['tag'] == "register") {
             $insert = $d->insert('users', $data);
 
             if ($insert) {
+                // Insert notification log for the registration action
+                $current_user_id = isset($_SESSION['gssk_user_id']) ? $_SESSION['gssk_user_id'] : 0; // current user (admin or system)
+                $message = "A new user registered: $name with email $email";
+                $d->insert_myactivity($current_user_id, 'User Registration', $message);
+
                 $response['message'] = 'Registration successful';
                 $response['status'] = '200';
             } else {

@@ -26,6 +26,14 @@ try {
     exit();
 }
 
+// Insert activity log/notification function
+function insert_myactivity($pdo, $user_id, $name, $message) {
+    $created_at = date("Y-m-d H:i:s");
+
+    $stmt = $pdo->prepare("INSERT INTO notifications (user_id, name, message, created_at) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$user_id, $name, $message, $created_at]);
+}
+
 switch ($method) {
     case 'GET':
         if (!isset($_GET['user_id'])) {
@@ -54,70 +62,87 @@ switch ($method) {
 
         $cart_id = intval($_GET['cart_id']);
 
+        // Get product_id and user_id before deletion for logging
+        $fetchStmt = $pdo->prepare("SELECT user_id, product_id FROM cart WHERE cart_id = ?");
+        $fetchStmt->execute([$cart_id]);
+        $item = $fetchStmt->fetch(PDO::FETCH_ASSOC);
+
         $stmt = $pdo->prepare("DELETE FROM cart WHERE cart_id = ?");
         $stmt->execute([$cart_id]);
 
         if ($stmt->rowCount() > 0) {
+            // Insert activity
+            if ($item) {
+                insert_myactivity($pdo, $item['user_id'], "Cart", "Removed product ID {$item['product_id']} from cart");
+            }
             echo json_encode(["status" => 200, "message" => "Item deleted"]);
         } else {
             echo json_encode(["status" => 404, "message" => "Item not found or already deleted"]);
         }
         break;
 
-        case 'POST':
-            $rawData = file_get_contents("php://input");
-            $data = json_decode($rawData, true);
-    
-            if (!$data) {
-                echo json_encode(["status" => 400, "message" => "Invalid JSON"]);
+    case 'POST':
+        $rawData = file_get_contents("php://input");
+        $data = json_decode($rawData, true);
+
+        if (!$data) {
+            echo json_encode(["status" => 400, "message" => "Invalid JSON"]);
+            exit();
+        }
+
+        $requiredFields = ['user_id', 'product_id', 'quantity', 'price'];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field])) {
+                echo json_encode(["status" => 400, "message" => "Missing: $field"]);
                 exit();
             }
-    
-            $requiredFields = ['user_id', 'product_id', 'quantity', 'price'];
-            foreach ($requiredFields as $field) {
-                if (!isset($data[$field])) {
-                    echo json_encode(["status" => 400, "message" => "Missing: $field"]);
-                    exit();
-                }
+        }
+
+        $user_id = intval($data['user_id']);
+        $product_id = intval($data['product_id']);
+        $quantity = intval($data['quantity']);
+        $price = floatval($data['price']);
+
+        // Check if product already exists in cart
+        $checkStmt = $pdo->prepare("SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?");
+        $checkStmt->execute([$user_id, $product_id]);
+        $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            // Product exists — update quantity and total
+            $newQuantity = $existing['quantity'] + $quantity;
+            $newTotal = $price * $newQuantity;
+
+            $updateStmt = $pdo->prepare("UPDATE cart SET quantity = ?, price = ?, total = ? WHERE user_id = ? AND product_id = ?");
+            $updated = $updateStmt->execute([$newQuantity, $price, $newTotal, $user_id, $product_id]);
+
+            if ($updated) {
+                insert_myactivity($pdo, $user_id, "Cart", "Updated quantity for product ID $product_id in cart");
             }
-    
-            $user_id = intval($data['user_id']);
-            $product_id = intval($data['product_id']);
-            $quantity = intval($data['quantity']);
-            $price = floatval($data['price']);
-    
-            // Check if product already exists in cart
-            $checkStmt = $pdo->prepare("SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?");
-            $checkStmt->execute([$user_id, $product_id]);
-            $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
-    
-            if ($existing) {
-                // Product exists — update quantity and total
-                $newQuantity = $existing['quantity'] + $quantity;
-                $newTotal = $price * $newQuantity;
-    
-                $updateStmt = $pdo->prepare("UPDATE cart SET quantity = ?, price = ?, total = ? WHERE user_id = ? AND product_id = ?");
-                $updated = $updateStmt->execute([$newQuantity, $price, $newTotal, $user_id, $product_id]);
-    
-                echo json_encode([
-                    "status" => $updated ? 200 : 500,
-                    "message" => $updated ? "Cart updated" : "Update failed"
-                ]);
-            } else {
-                // Product not in cart — insert new row
-                $total = $price * $quantity;
-    
-                $insertStmt = $pdo->prepare("INSERT INTO cart (user_id, product_id, quantity, price, total) 
-                                             VALUES (?, ?, ?, ?, ?)");
-                $inserted = $insertStmt->execute([$user_id, $product_id, $quantity, $price, $total]);
-    
-                echo json_encode([
-                    "status" => $inserted ? 200 : 500,
-                    "message" => $inserted ? "Added to cart" : "Insert failed"
-                ]);
+
+            echo json_encode([
+                "status" => $updated ? 200 : 500,
+                "message" => $updated ? "Cart updated" : "Update failed"
+            ]);
+        } else {
+            // Product not in cart — insert new row
+            $total = $price * $quantity;
+
+            $insertStmt = $pdo->prepare("INSERT INTO cart (user_id, product_id, quantity, price, total) 
+                                         VALUES (?, ?, ?, ?, ?)");
+            $inserted = $insertStmt->execute([$user_id, $product_id, $quantity, $price, $total]);
+
+            if ($inserted) {
+                insert_myactivity($pdo, $user_id, "Cart", "Added product ID $product_id to cart");
             }
-    
-            break;
+
+            echo json_encode([
+                "status" => $inserted ? 200 : 500,
+                "message" => $inserted ? "Added to cart" : "Insert failed"
+            ]);
+        }
+
+        break;
 
     default:
         echo json_encode(["status" => 405, "message" => "Method not allowed"]);

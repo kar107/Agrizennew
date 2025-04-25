@@ -85,15 +85,25 @@ class dao implements interface1
         return mysqli_query($this->conn,"INSERT INTO log_master(recident_user_id,society_id,user_id,user_name,log_name,log_time,common_id,old_data,new_data,module_name) VALUES($val)") or die(mysqli_error($this->conn));
     }
     
-    function insert_myactivity($recident_user_id,$society_id,$user_id,$user_name,$log_name,$log_img)
-    {   
-      $log_name = $this->conn->real_escape_string($log_name);
-      $user_name = $this->conn->real_escape_string($user_name);
-        $now=date("Y-m-d H:i:s");
-        $val="'$recident_user_id','$society_id','$user_id','$user_name','$log_name','$now','$log_img'";
-        mysqli_set_charset($this->conn,"utf8mb4");
-        return mysqli_query($this->conn,"INSERT INTO log_master(recident_user_id,society_id,user_id,user_name,log_name,log_time,log_img) VALUES($val)") or die(mysqli_error($this->conn));
+    function insert_myactivity($user_id, $name, $message)
+{
+    mysqli_set_charset($this->conn, "utf8mb4");
+
+    $user_id = (int)$user_id;
+    $name = mysqli_real_escape_string($this->conn, $name);
+    $message = mysqli_real_escape_string($this->conn, $message);
+    $created_at = date("Y-m-d H:i:s");
+
+    $query = "INSERT INTO notifications (user_id, name, message, created_at) 
+              VALUES ('$user_id', '$name', '$message', '$created_at')";
+
+    $result = mysqli_query($this->conn, $query);
+    if (!$result) {
+        die("Insert Notification Error: " . mysqli_error($this->conn));
     }
+    return $result;
+}
+
 
      function insertGuardNotification($notification_logo,$title,$description,$click_action,$society_id,$block_id)
     { 

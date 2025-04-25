@@ -22,6 +22,12 @@ switch ($method) {
 
             if ($user) {
                 unset($user['password_hash']); // Remove password hash for security
+
+                // Log the action: user profile fetch
+                $current_user_id = isset($_SESSION['gssk_user_id']) ? $_SESSION['gssk_user_id'] : 0; // Get current user ID (admin or system)
+                $message = "Fetched profile for user: $userid";
+                $d->insert_myactivity($current_user_id, 'User Profile Fetch', $message);
+
                 $response = [
                     'status' => 200,
                     'message' => 'User retrieved successfully',
@@ -48,7 +54,7 @@ switch ($method) {
             echo json_encode(['status' => 400, 'message' => 'User ID is required']);
             exit;
         }
-        
+
         $userid = intval($data['userid']);
         $updateData = [];
 
@@ -75,6 +81,12 @@ switch ($method) {
 
         if (!empty($updateData)) {
             $updateStatus = $d->update('users', $updateData, "userid = $userid");
+
+            // Log the update action (success or failure)
+            $current_user_id = isset($_SESSION['gssk_user_id']) ? $_SESSION['gssk_user_id'] : 0; // Get current user ID (admin or system)
+            $message = "Updated profile for user: $userid";
+            $d->insert_myactivity($current_user_id, 'User Profile Update', $message);
+
             echo json_encode([
                 'status' => $updateStatus ? 200 : 500,
                 'message' => $updateStatus ? 'Profile updated successfully' : 'Profile update failed'

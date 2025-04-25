@@ -1,0 +1,42 @@
+Admin:
+
+Actor: Admin
+Use Cases: Manage Farmers, Manage Vendors, View Reports, Approve Transactions, System Settings.
+Boundary: Agriculture Management System.
+
+Farmers:
+
+Actor: Farmers
+Use Cases: Register Crop Details, View Market Prices, Manage Inventory, Place Orders, Receive Payments.
+Boundary: Agriculture Management System.
+
+Supplier:
+
+Actor: Supplier
+Use Cases: Register Products, Receive Orders, Track Payments, Provide Discounts.
+Boundary: Agriculture Management System.
+
+Crop:
+1	
+Wheat
+Lokwan
+Winter Season (Oct–March)	
+120 days
+Punjab, Haryana, UP
+Loamy soil	Broadcasting
+3,500 kg
+Wheat is a winter crop. It requires cool temperatures and grows best in loamy soils. Lokwan is popular for its quality grain and good market price.
+
+product:
+1
+Hybrid Maize Seeds
+High-yield maize seeds suitable for diverse climates, resistant to drought and pests, ensuring optimal germination and maximum productivity.
+1
+75.00	
+500	kg
+maize_seeds.jpg
+
+categories:
+1
+Seeds
+A wide variety of high-quality seeds, including grains, vegetables, and fruit seeds, designed for maximum yield and adaptability to different climates.

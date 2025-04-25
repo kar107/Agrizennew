@@ -18,6 +18,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+// ✅ Function to insert into notifications table using PDO
+function insert_myactivity($pdo, $user_id, $name, $message)
+{
+    $user_id = (int)$user_id;
+    $created_at = date("Y-m-d H:i:s");
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO notifications (user_id, name, message, created_at) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$user_id, $name, $message, $created_at]);
+    } catch (PDOException $e) {
+        die("Insert Notification Error: " . $e->getMessage());
+    }
+}
+
 try {
     $pdo = new PDO("mysql:host=localhost;dbname=agrizen", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -65,7 +79,7 @@ if ($method === 'POST') {
     $requiredFields = ['user_id', 'total_amount', 'payment_method', 'shipping_address', 'cart_items'];
     foreach ($requiredFields as $field) {
         if (!isset($data[$field])) {
-            echo json_encode(["status" => 400, "message" => "Missing: $field"]);
+            echo json_encode(["status => 400", "message" => "Missing: $field"]);
             exit();
         }
     }
@@ -98,6 +112,9 @@ if ($method === 'POST') {
         $deleteStmt->execute([$user_id]);
 
         $pdo->commit();
+
+        // ✅ Insert notification after successful order placement
+        insert_myactivity($pdo, $user_id, "Order Placed", "Order #$order_id placed successfully.");
 
         echo json_encode(["status" => 200, "message" => "Order placed successfully."]);
     } catch (PDOException $e) {

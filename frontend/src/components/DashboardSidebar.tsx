@@ -44,7 +44,7 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ type, onUserManagementClick 
         { icon: Package, label: 'Products', path: '/admin/products' },
         { icon: Sprout, label: 'Crop Management', path: '/admin/crops' },
         { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
-        { icon: Bell, label: 'Notifications', path: '/admin/notifications' },
+        { icon: Bell, label: 'Notifications', path: '/admin/NotificationManagement' },
         { icon: BarChart2, label: 'Analytics', path: '/admin/analytics' },
         { icon: MessageSquare, label: 'Support', path: '/admin/support' },
         { icon: Settings, label: 'Settings', path: '/admin/settings' },

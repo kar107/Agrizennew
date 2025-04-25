@@ -33,6 +33,7 @@ import SupplierOrders from "./pages/supplier/orders"; // ✅ NEW IMPORT
 import SupplierProductManagement from "./pages/supplier/products";
 import SupplierProfileManagement from "./pages/supplier/profile";
 import Orders from "./pages/userorders";
+import NotificationManagement from "./pages/admin/NotificationManagement";
 
 function Layout() {
   const location = useLocation();
@@ -93,6 +94,7 @@ function Layout() {
           <Route path="/admin/Crops" element={<Crops />} />
           <Route path="/cropmanagement" element={<CropManagement />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/admin/NotificationManagement" element={<NotificationManagement />} />
         </Routes>
       </main>
       {!hideNavbarFooter && <Footer />}
